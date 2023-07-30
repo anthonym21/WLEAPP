@@ -8,7 +8,7 @@ def get_setupapiDev(files_found, report_folder, seeker, wrap_text):
 
     for file_found in files_found:
         file_found = str(file_found)
-        if not os.path.basename(file_found) == "setupapi.dev.log":
+        if os.path.basename(file_found) != "setupapi.dev.log":
             continue
 
         with open(file_found, "r") as fp:
@@ -21,7 +21,7 @@ def get_setupapiDev(files_found, report_folder, seeker, wrap_text):
             report = ArtifactHtmlReport("setupapi.dev.log")
             report.start_artifact_report(report_folder, 'setupapi.dev.log')
             report.add_script()
-        
+
             data_list = []
 
             data_headers = ('Name', 'First Connection Time')
@@ -33,8 +33,8 @@ def get_setupapiDev(files_found, report_folder, seeker, wrap_text):
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'setupapi.dev.log'
+            tsvname = 'setupapi.dev.log'
             tsv(report_folder, data_headers, data_list, tsvname)
 
         else:
-            logfunc(f'No setupapi.dev.log data available')
+            logfunc('No setupapi.dev.log data available')

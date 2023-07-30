@@ -12,12 +12,12 @@ def get_pfirewall(files_found, report_folder, seeker, wrap_text):
         file_found = str(file_found)
         if not file_found.endswith('pfirewall.log'):
             continue # Skip all other files
-    
+
         data_list = []
-        
+
         with open(file_found, 'r') as file:
             lines = file.readlines()
-            
+
         for iteration, x in enumerate(lines):
             if 'Version' in x:
                 firewallversion = x
@@ -44,21 +44,21 @@ def get_pfirewall(files_found, report_folder, seeker, wrap_text):
                 path = fields[16]
                 pid = fields[17]
                 data_list.append((timestamp, action, protocol, sourceip, destip, sourceport, destport, size, tcpflags, tcpsyn, tcpack, tcpwin, icmptype, icmpcode, info, path, pid))   
-                
+
     num_entries = len(data_list)
     if num_entries > 0:
         report = ArtifactHtmlReport('Windows Firewall Logs')
         report.start_artifact_report(report_folder, 'Windows Firewall Logs')
         report.add_script()
         data_headers = ('Timestamp', 'Action', 'Protocol', 'Source IP', 'Destination IP', 'Source Port', 'Dest Port', 'Size', 'TCP Flags', 'TCP SYN', 'TCP ACK', 'TCP WIN', 'ICMP Type', 'ICMP Code', 'Info', 'Path', 'PID')
-        
+
         report.write_artifact_data_table(data_headers, data_list, file_found)
         report.end_artifact_report()
-        
-        tsvname = f'Windows Firewall Logs'
+
+        tsvname = 'Windows Firewall Logs'
         tsv(report_folder, data_headers, data_list, tsvname)
-        
-        tlactivity = f'Windows Firewall Logs'
+
+        tlactivity = 'Windows Firewall Logs'
         timeline(report_folder, tlactivity, data_list, data_headers)
     else:
         logfunc('No Windows Firewall Logs data available')

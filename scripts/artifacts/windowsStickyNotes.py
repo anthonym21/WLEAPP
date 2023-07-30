@@ -9,7 +9,7 @@ def get_windowsStickyNotes(files_found, report_folder, seeker, wrap_text):
 
     for file_found in files_found:
         file_found = str(file_found)
-        if not os.path.basename(file_found) == "plum.sqlite":
+        if os.path.basename(file_found) != "plum.sqlite":
             continue
 
         db = open_sqlite_db_readonly(file_found)
@@ -49,10 +49,10 @@ def get_windowsStickyNotes(files_found, report_folder, seeker, wrap_text):
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'Windows StickyNotes'
+            tsvname = 'Windows StickyNotes'
             tsv(report_folder, data_headers, data_list, tsvname)
 
         else:
-            logfunc(f'No Windows StickyNotes data available')
+            logfunc('No Windows StickyNotes data available')
 
         db.close()

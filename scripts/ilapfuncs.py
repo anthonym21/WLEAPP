@@ -21,12 +21,14 @@ class OutputParameters:
     
     def __init__(self, output_folder):
         now = datetime.datetime.now()
-        currenttime = str(now.strftime('%Y-%m-%d_%A_%H%M%S'))
-        self.report_folder_base = os.path.join(output_folder, 'WLEAPP_Reports_' + currenttime) # aleapp , aleappGUI, ileap_artifacts, report.py
+        currenttime = now.strftime('%Y-%m-%d_%A_%H%M%S')
+        self.report_folder_base = os.path.join(
+            output_folder, f'WLEAPP_Reports_{currenttime}'
+        )
         self.temp_folder = os.path.join(self.report_folder_base, 'temp')
         OutputParameters.screen_output_file_path = os.path.join(self.report_folder_base, 'Script Logs', 'Screen Output.html')
         OutputParameters.screen_output_file_path_devinfo = os.path.join(self.report_folder_base, 'Script Logs', 'DeviceInfo.html')
-        
+
         os.makedirs(os.path.join(self.report_folder_base, 'Script Logs'))
         os.makedirs(self.temp_folder)
 
@@ -70,13 +72,13 @@ def open_sqlite_db_readonly(path):
     '''Opens an sqlite db in read-only mode, so original db (and -wal/journal are intact)'''
     if is_platform_windows():
         if path.startswith('\\\\?\\UNC\\'): # UNC long path
-            path = "%5C%5C%3F%5C" + path[4:]
+            path = f"%5C%5C%3F%5C{path[4:]}"
         elif path.startswith('\\\\?\\'):    # normal long path
-            path = "%5C%5C%3F%5C" + path[4:]
+            path = f"%5C%5C%3F%5C{path[4:]}"
         elif path.startswith('\\\\'):       # UNC path
             path = "%5C%5C%3F%5C\\UNC" + path[1:]
-        else:                               # normal path
-            path = "%5C%5C%3F%5C" + path
+        else:                       # normal path
+            path = f"%5C%5C%3F%5C{path}"
     return sqlite3.connect (f"file:{path}?mode=ro", uri=True)
 
 def does_column_exist_in_db(db, table_name, col_name):
@@ -93,7 +95,6 @@ def does_column_exist_in_db(db, table_name, col_name):
                 return True
     except sqlite3.Error as ex:
         print(f"Query error, query={query} Error={str(ex)}")
-        pass
     return False
 
 def does_table_exist(db, table_name):
@@ -101,7 +102,7 @@ def does_table_exist(db, table_name):
     try:
         query = f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}'"
         cursor = db.execute(query)
-        for row in cursor:
+        for _ in cursor:
             return True
     except sqlite3Error as ex:
         logfunc(f"Query error, query={query} Error={str(ex)}")
@@ -121,14 +122,14 @@ class GuiWindow:
 def logfunc(message=""):
     with open(OutputParameters.screen_output_file_path, 'a', encoding='utf8') as a:
         print(message)
-        a.write(message + '<br>' + OutputParameters.nl)
+        a.write(f'{message}<br>{OutputParameters.nl}')
 
     if GuiWindow.window_handle:
         GuiWindow.window_handle.refresh()
         
 def logdevinfo(message=""):
     with open(OutputParameters.screen_output_file_path_devinfo, 'a', encoding='utf8') as b:
-        b.write(message + '<br>' + OutputParameters.nl)
+        b.write(f'{message}<br>{OutputParameters.nl}')
     
 """ def deviceinfoin(ordes, kas, vas, sources): # unused function
     sources = str(sources)
@@ -144,23 +145,18 @@ def html2csv(reportfolderbase):
                     'Distribution Keys.html', 
                     'StrucMetadata.html',
                     'StrucMetadataCombined.html']
-                    
-    if os.path.isdir(os.path.join(reportfolderbase, '_CSV Exports')):
-        pass
-    else:
+
+    if not os.path.isdir(os.path.join(reportfolderbase, '_CSV Exports')):
         os.makedirs(os.path.join(reportfolderbase, '_CSV Exports'))
     for root, dirs, files in sorted(os.walk(reportfolderbase)):
         for file in files:
             if file.endswith(".html"):
                 fullpath = (os.path.join(root, file))
                 head, tail = os.path.split(fullpath)
-                if file in itemstoignore:
-                    pass
-                else:
-                    data = open(fullpath, 'r', encoding='utf8')
-                    soup=BeautifulSoup(data,'html.parser')
-                    tables = soup.find_all("table")
-                    data.close()
+                if file not in itemstoignore:
+                    with open(fullpath, 'r', encoding='utf8') as data:
+                        soup=BeautifulSoup(data,'html.parser')
+                        tables = soup.find_all("table")
                     output_final_rows=[]
 
                     for table in tables:
@@ -168,13 +164,11 @@ def html2csv(reportfolderbase):
                         for table_row in table.findAll('tr'):
 
                             columns = table_row.findAll('td')
-                            output_row = []
-                            for column in columns:
-                                    output_row.append(column.text)
+                            output_row = [column.text for column in columns]
                             output_rows.append(output_row)
-        
+
                         file = (os.path.splitext(file)[0])
-                        with codecs.open(os.path.join(reportfolderbase, '_CSV Exports',  file +'.csv'), 'a', 'utf-8-sig') as csvfile:
+                        with codecs.open(os.path.join(reportfolderbase, '_CSV Exports', f'{file}.csv'), 'a', 'utf-8-sig') as csvfile:
                             writer = csv.writer(csvfile, quotechar='"', quoting=csv.QUOTE_ALL)
                             writer.writerows(output_rows)
 
@@ -183,26 +177,24 @@ def tsv(report_folder, data_headers, data_list, tsvname, source_file=None):
     report_folder = report_folder.rstrip('\\')
     report_folder_base, tail = os.path.split(report_folder)
     tsv_report_folder = os.path.join(report_folder_base, '_TSV Exports')
-    
-    if os.path.isdir(tsv_report_folder):
-        pass
-    else:
+
+    if not os.path.isdir(tsv_report_folder):
         os.makedirs(tsv_report_folder)
 
-    if os.path.exists(os.path.join(tsv_report_folder, tsvname +'.tsv')):
-        with codecs.open(os.path.join(tsv_report_folder, tsvname +'.tsv'), 'a') as tsvfile:
+    if os.path.exists(os.path.join(tsv_report_folder, f'{tsvname}.tsv')):
+        with codecs.open(os.path.join(tsv_report_folder, f'{tsvname}.tsv'), 'a') as tsvfile:
             tsv_writer = csv.writer(tsvfile, delimiter='\t')
             for i in data_list:
-                if source_file == None:
+                if source_file is None:
                     tsv_writer.writerow(i)
                 else:
                     row_data = list(i)
                     row_data.append(source_file)
                     tsv_writer.writerow(tuple(row_data))
-    else:    
-        with codecs.open(os.path.join(tsv_report_folder, tsvname +'.tsv'), 'a', 'utf-8-sig') as tsvfile:
+    else:
+        with codecs.open(os.path.join(tsv_report_folder, f'{tsvname}.tsv'), 'a', 'utf-8-sig') as tsvfile:
             tsv_writer = csv.writer(tsvfile, delimiter='\t')
-            if source_file ==  None:
+            if source_file is None:
                 tsv_writer.writerow(data_headers)
                 for i in data_list:
                     tsv_writer.writerow(i)
@@ -240,13 +232,13 @@ def timeline(report_folder, tlactivity, data_list, data_headers):
         """
             )
         db.commit()
-    
-    a = 0
+
     length = (len(data_list))
-    while a < length: 
-        modifiedList = list(map(lambda x, y: x + ': ' +  str(y), data_headers, data_list[a]))
+    for a in range(length): 
+        modifiedList = list(
+            map(lambda x, y: f'{x}: {str(y)}', data_headers, data_list[a])
+        )
         cursor.executemany("INSERT INTO data VALUES(?,?,?)", [(str(data_list[a][0]), tlactivity, str(modifiedList))])
-        a += 1
     db.commit()
     db.close()
     
@@ -255,14 +247,13 @@ def kmlgen(report_folder, kmlactivity, data_list, data_headers):
     report_folder = report_folder.rstrip('\\')
     report_folder_base, tail = os.path.split(report_folder)
     kml_report_folder = os.path.join(report_folder_base, '_KML Exports')
-    
+
     if os.path.isdir(kml_report_folder):
         latlongdb = os.path.join(kml_report_folder, '_latlong.db')
         db = sqlite3.connect(latlongdb)
         cursor = db.cursor()
         cursor.execute('''PRAGMA synchronous = EXTRA''')
         cursor.execute('''PRAGMA journal_mode = WAL''')
-        db.commit()
     else:
         os.makedirs(kml_report_folder)
         latlongdb = os.path.join(kml_report_folder, '_latlong.db')
@@ -273,24 +264,20 @@ def kmlgen(report_folder, kmlactivity, data_list, data_headers):
         CREATE TABLE data(key TEXT, latitude TEXT, longitude TEXT, activity TEXT)
         """
             )
-        db.commit()
-    
+    db.commit()
     kml = simplekml.Kml(open=1)
-    
-    a = 0
+
     length = (len(data_list))
-    while a < length:
+    for a in range(length):
         modifiedDict = dict(zip(data_headers, data_list[a]))
         times = modifiedDict['Timestamp']
         lon = modifiedDict['Longitude']
-        lat = modifiedDict['Latitude']
-        if lat:
+        if lat := modifiedDict['Latitude']:
             pnt = kml.newpoint()
             pnt.name = times
             pnt.description = f"Timestamp: {times} - {kmlactivity}"
             pnt.coords = [(lon, lat)]
             cursor.execute("INSERT INTO data VALUES(?,?,?,?)", (times, lat, lon, kmlactivity))
-        a += 1
     db.commit()
     db.close()
     kml.save(os.path.join(kml_report_folder, f'{kmlactivity}.kml'))
@@ -321,7 +308,7 @@ def utf8_in_extended_ascii(input_string, *, raise_on_unexpected=False):
     multibytes_expected = 0
     multibyte_buffer = []
     mis_encoded_utf8_present = False
-    
+
     def handle_bad_data(index, character):
         if not raise_on_unexpected: # not raising, so we dump the buffer into output and append this character
             output.extend(multibyte_buffer)
@@ -333,7 +320,7 @@ def utf8_in_extended_ascii(input_string, *, raise_on_unexpected=False):
             multibytes_expected = 0
         else:
             raise ValueError(f"Expected multibyte continuation at index: {index}")
-            
+
     for idx, c in enumerate(input_string):
         code_point = ord(c)
         if code_point <= 0x7f or code_point > 0xf4:  # ASCII Range data or higher than you get for mis-encoded utf-8:
@@ -350,7 +337,7 @@ def utf8_in_extended_ascii(input_string, *, raise_on_unexpected=False):
             else:  # start-byte
                 if not is_in_multibyte:
                     assert multibytes_expected == 0
-                    assert len(multibyte_buffer) == 0
+                    assert not multibyte_buffer
                     while (code_point & 0x80) != 0:
                         multibytes_expected += 1
                         code_point <<= 1
@@ -358,7 +345,7 @@ def utf8_in_extended_ascii(input_string, *, raise_on_unexpected=False):
                     is_in_multibyte = True
                 else:
                     handle_bad_data(idx, c)
-                    
+
         if is_in_multibyte and len(multibyte_buffer) == multibytes_expected:  # output utf-8 character if complete
             utf_8_character = bytes(ord(x) for x in multibyte_buffer).decode("utf-8")
             output.append(utf_8_character)
@@ -366,10 +353,10 @@ def utf8_in_extended_ascii(input_string, *, raise_on_unexpected=False):
             is_in_multibyte = False
             multibytes_expected = 0
             mis_encoded_utf8_present = True
-        
+
     if multibyte_buffer:  # if we have left-over data
         handle_bad_data(len(input_string), "")
-    
+
     return mis_encoded_utf8_present, "".join(output)
 
 def media_to_html(media_path, files_found, report_folder):
@@ -379,17 +366,17 @@ def media_to_html(media_path, files_found, report_folder):
         for x in splitted_a:
             if 'LEAPP_Reports_' in x:
                 report_folder = x
-                
+
         splitted_b = source.split(report_folder)
-        return '.'+ splitted_b[1]
-    
+        return f'.{splitted_b[1]}'
+
     platform = is_platform_windows()
     if platform:
         media_path = media_path.replace('/', '\\')
         splitter = '\\'
     else:
         splitter = '/'
-        
+
     thumb = media_path
     for match in files_found:
         filename = os.path.basename(match)
@@ -397,9 +384,9 @@ def media_to_html(media_path, files_found, report_folder):
             continue
         if filename.startswith('._'):
             continue
-        
+
         if media_path in match:
-            
+
             dirs = os.path.dirname(report_folder)
             dirs = os.path.dirname(dirs)
             env_path = os.path.join(dirs, 'temp')
@@ -416,9 +403,9 @@ def media_to_html(media_path, files_found, report_folder):
                 shutil.copy2(match, locationfiles)
                 source = Path(locationfiles, filename)
                 source = relative_paths(source, splitter)
-                
+
             mimetype = magic.from_file(match, mime = True)
-            
+
             if 'video' in mimetype:
                 thumb = f'<video width="320" height="240" controls="controls"><source src="{source}" type="video/mp4">Your browser does not support the video tag.</video>'
             elif 'image' in mimetype:
@@ -439,7 +426,6 @@ def usergen(report_folder, data_list_usernames):
         cursor = db.cursor()
         cursor.execute('''PRAGMA synchronous = EXTRA''')
         cursor.execute('''PRAGMA journal_mode = WAL''')
-        db.commit()
     else:
         os.makedirs(udb_report_folder)
         usernames = os.path.join(udb_report_folder, '_usernames.db')
@@ -450,18 +436,15 @@ def usergen(report_folder, data_list_usernames):
             CREATE TABLE data(username TEXT, appname TEXT, artifactname text, html_report text, data TEXT)
             """
         )
-        db.commit()
-
-    a = 0
+    db.commit()
     length = (len(data_list_usernames))
-    while a < length:
+    for a in range(length):
         user = data_list_usernames[a][0]
         app = data_list_usernames[a][1]
         artifact = data_list_usernames[a][2]
         html_report = data_list_usernames[a][3]
         data = data_list_usernames[a][4]
         cursor.execute("INSERT INTO data VALUES(?,?,?,?,?)", (user, app, artifact, html_report, data))
-        a += 1
     db.commit()
     db.close()
 
@@ -478,7 +461,6 @@ def ipgen(report_folder, data_list_ipaddress):
         cursor = db.cursor()
         cursor.execute('''PRAGMA synchronous = EXTRA''')
         cursor.execute('''PRAGMA journal_mode = WAL''')
-        db.commit()
     else:
         os.makedirs(udb_report_folder)
         ipaddress = os.path.join(udb_report_folder, '_ipaddresses.db')
@@ -489,18 +471,15 @@ def ipgen(report_folder, data_list_ipaddress):
             CREATE TABLE data(ipaddress TEXT, appname TEXT, artifactname text, html_report text, data TEXT)
             """
         )
-        db.commit()
-
-    a = 0
+    db.commit()
     length = (len(data_list_ipaddress))
-    while a < length:
+    for a in range(length):
         ip_address = data_list_ipaddress[a][0]
         app = data_list_ipaddress[a][1]
         artifact = data_list_ipaddress[a][2]
         html_report = data_list_ipaddress[a][3]
         data = data_list_ipaddress[a][4]
         cursor.execute("INSERT INTO data VALUES(?,?,?,?,?)", (ip_address, app, artifact, html_report, data))
-        a += 1
     db.commit()
     db.close()
     

@@ -9,8 +9,8 @@ def get_activitiesCache(files_found, report_folder, seeker, wrap_text):
 
     for file_found in files_found:
         file_found = str(file_found)
-        
-        if not os.path.basename(file_found) == 'ActivitiesCache.db':
+
+        if os.path.basename(file_found) != 'ActivitiesCache.db':
             continue
 
         db = open_sqlite_db_readonly(file_found)
@@ -48,10 +48,10 @@ def get_activitiesCache(files_found, report_folder, seeker, wrap_text):
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'ActivitesCache'
+            tsvname = 'ActivitesCache'
             tsv(report_folder, data_headers, data_list, tsvname)
 
         else:
-            logfunc(f'No ActivitiesCache data available')
+            logfunc('No ActivitiesCache data available')
 
         db.close()

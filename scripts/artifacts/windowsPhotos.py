@@ -8,7 +8,7 @@ def get_windowsPhotos(files_found, report_folder, seeker, wrap_text):
 
     for file_found in files_found:
         file_found = str(file_found)
-        if not os.path.basename(file_found) == "MediaDb.v1.sqlite":
+        if os.path.basename(file_found) != "MediaDb.v1.sqlite":
             continue
 
         db = open_sqlite_db_readonly(file_found)
@@ -34,20 +34,28 @@ def get_windowsPhotos(files_found, report_folder, seeker, wrap_text):
             report.start_artifact_report(report_folder, 'Windows Photos - Item')
             report.add_script()
 
-            data_list = []
-
             data_headers = ('Filename', 'Filesize', 'Width', 'Height', 'DateTaken', 'DateCreated', 'DateModified', 'DateIngested')
-            for rows in all_rows:
-                data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4], rows[5], rows[6], rows[7]))
-
+            data_list = [
+                (
+                    rows[0],
+                    rows[1],
+                    rows[2],
+                    rows[3],
+                    rows[4],
+                    rows[5],
+                    rows[6],
+                    rows[7],
+                )
+                for rows in all_rows
+            ]
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'Windows Photos - Item'
+            tsvname = 'Windows Photos - Item'
             tsv(report_folder, data_headers, data_list, tsvname)
 
         else:
-            logfunc(f'No Item table available')
+            logfunc('No Item table available')
 
         try:
             cursor.execute('''select Folder.Folder_Path AS Folder_Path,
@@ -56,7 +64,7 @@ def get_windowsPhotos(files_found, report_folder, seeker, wrap_text):
             datetime((Folder.Folder_DateCreated - 116444736000000000) / 10000000, 'unixepoch', 'localtime') AS Folder_DateCreated,
             datetime((Folder.Folder_DateModified - 116444736000000000) / 10000000, 'unixepoch', 'localtime') AS Folder_DateModified
             FROM Folder ORDER BY Folder_DateCreated ASC''')
-            
+
             all_rows = cursor.fetchall()
             usageentries = len(all_rows)
         except:
@@ -67,19 +75,18 @@ def get_windowsPhotos(files_found, report_folder, seeker, wrap_text):
             report.start_artifact_report(report_folder, 'Windows Photos - Folder')
             report.add_script()
 
-            data_list = []
-
             data_headers = ("Folder_Path", "Folder_DisplayName", "Folder_ItemCount", "Folder_DateCreated", "Folder_DateModified")
-            for rows in all_rows:
-                data_list.append((rows[0], rows[1] ,rows[2], rows[3], rows[4]))
-
+            data_list = [
+                (rows[0], rows[1], rows[2], rows[3], rows[4])
+                for rows in all_rows
+            ]
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'Windows Photos - Folder'
+            tsvname = 'Windows Photos - Folder'
             tsv(report_folder, data_headers, data_list, tsvname)
-            
+
         else:
-            logfunc(f"No Folder table available")
+            logfunc("No Folder table available")
 
         db.close()

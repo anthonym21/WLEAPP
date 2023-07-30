@@ -34,14 +34,18 @@ class FileSeekerDir(FileSeekerBase):
                 if item.is_dir(follow_symlinks=False):
                     self.build_files_list(item.path)
         except Exception as ex:
-            logfunc(f'Error reading {directory} ' + str(ex))
+            logfunc(f'Error reading {directory} {str(ex)}')
 
     def search(self, filepattern, return_on_first_hit=False):
         if return_on_first_hit:
-            for item in self._all_files:
-                if fnmatch.fnmatch(item, filepattern):
-                    return [item]
-            return []
+            return next(
+                (
+                    [item]
+                    for item in self._all_files
+                    if fnmatch.fnmatch(item, filepattern)
+                ),
+                [],
+            )
         return fnmatch.filter(self._all_files, filepattern)
 
 class FileSeekerTar(FileSeekerBase):
@@ -56,7 +60,7 @@ class FileSeekerTar(FileSeekerBase):
     def search(self, filepattern, return_on_first_hit=False):
         pathlist = []
         for member in self.tar_file.getmembers():
-            if fnmatch.fnmatch('root/' + member.name, filepattern):
+            if fnmatch.fnmatch(f'root/{member.name}', filepattern):
                 try:
                     clean_name = sanitize_file_path(member.name)
                     full_path = os.path.join(self.temp_folder, Path(clean_name))
@@ -72,7 +76,9 @@ class FileSeekerTar(FileSeekerBase):
                         os.utime(full_path, (member.mtime, member.mtime))
                     pathlist.append(full_path)
                 except Exception as ex:
-                    logfunc(f'Could not write file to filesystem, path was {member.name} ' + str(ex))
+                    logfunc(
+                        f'Could not write file to filesystem, path was {member.name} {str(ex)}'
+                    )
         return pathlist
 
     def cleanup(self):
@@ -89,13 +95,13 @@ class FileSeekerZip(FileSeekerBase):
     def search(self, filepattern, return_on_first_hit=False):
         pathlist = []
         for member in self.name_list:
-            if fnmatch.fnmatch('root/' + member, filepattern):
+            if fnmatch.fnmatch(f'root/{member}', filepattern):
                 try:
                     extracted_path = self.zip_file.extract(member, path=self.temp_folder) # already replaces illegal chars with _ when exporting
                     pathlist.append(extracted_path)
                 except Exception as ex:
                     member = member.lstrip("/")
-                    logfunc(f'Could not write file to filesystem, path was {member} ' + str(ex))
+                    logfunc(f'Could not write file to filesystem, path was {member} {str(ex)}')
         return pathlist
 
     def cleanup(self):

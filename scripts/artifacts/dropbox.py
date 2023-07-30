@@ -25,7 +25,7 @@ def get_dropbox(files_found, report_folder, seeker, wrap_text):
     source_file_sync_history = ''
 
     for file_found in files_found:
-        
+
         if file_found.endswith("cachefiles.sqlite"):
             cachefiles_db = str(file_found)
             source_file_cachefiles = file_found.replace(seeker.directory, '')
@@ -60,15 +60,22 @@ def get_dropbox(files_found, report_folder, seeker, wrap_text):
         report.start_artifact_report(report_folder, 'Dropbox App - CacheItem')
         report.add_script()
         data_headers = ('Filename', 'Path', 'Filesize', 'Hash', 'LastAccessDateTime', 'LocalLastModifiedTime')
-        
-        data_list = []
-        for rows in all_rows:
-            data_list.append((rows[0], rows[1], rows[2], rows[3], convert_dotnet_tick(rows[4]), convert_dotnet_tick(rows[5])))
 
+        data_list = [
+            (
+                rows[0],
+                rows[1],
+                rows[2],
+                rows[3],
+                convert_dotnet_tick(rows[4]),
+                convert_dotnet_tick(rows[5]),
+            )
+            for rows in all_rows
+        ]
         report.write_artifact_data_table(data_headers, data_list, cachefiles_db)
         report.end_artifact_report()
 
-        tsvname = f'Dropbox App - CacheItem'
+        tsvname = 'Dropbox App - CacheItem'
         tsv(report_folder, data_headers, data_list, tsvname, source_file_cachefiles)
     else:
         logfunc('No cachefiles.sqlite - CacheItem available')
@@ -95,15 +102,12 @@ def get_dropbox(files_found, report_folder, seeker, wrap_text):
         report.start_artifact_report(report_folder, 'Dropbox App - ContactItem')
         report.add_script()
         data_headers = ('Email', 'DBId', 'PhotoUrl', 'Name')
-        
-        data_list = []
-        for rows in all_rows:
-            data_list.append((rows[0], rows[1], rows[2], rows[3]))
 
+        data_list = [(rows[0], rows[1], rows[2], rows[3]) for rows in all_rows]
         report.write_artifact_data_table(data_headers, data_list, contacts_db)
         report.end_artifact_report()
 
-        tsvname = f'Dropbox App - ContactItem'
+        tsvname = 'Dropbox App - ContactItem'
         tsv(report_folder, data_headers, data_list, tsvname, source_file_contacts)
     else:
         logfunc('No contacts.sqlite - ContactItem available')
@@ -132,15 +136,15 @@ def get_dropbox(files_found, report_folder, seeker, wrap_text):
         report.start_artifact_report(report_folder, 'Dropbox - Sync History')
         report.add_script()
         data_headers = ('Event Type', 'File Event Type', 'Direction', 'local_path', 'other_user', 'timestamp')
-        
-        data_list = []
-        for rows in all_rows:
-            data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4], rows[5]))
 
+        data_list = [
+            (rows[0], rows[1], rows[2], rows[3], rows[4], rows[5])
+            for rows in all_rows
+        ]
         report.write_artifact_data_table(data_headers, data_list, sync_history_db)
         report.end_artifact_report()
 
-        tsvname = f'Dropbox - Sync History'
+        tsvname = 'Dropbox - Sync History'
         tsv(report_folder, data_headers, data_list, tsvname, source_file_sync_history)
     else:
         logfunc('No sync_history.db - sync_history available')

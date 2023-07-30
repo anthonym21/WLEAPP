@@ -33,40 +33,39 @@ def get_windowsEdge(files_found, report_folder, seeker, wrap_text):
 
     for file_found in files_found:
         file_found = str(file_found)
-        if not os.path.basename(file_found) == "WebCacheV01.dat":
+        if os.path.basename(file_found) != "WebCacheV01.dat":
             continue
 
-        file_object = open(file_found, "rb")
-        esedb_file = pyesedb.file()
-        esedb_file.open_file_object(file_object)
-        ContainersTable = esedb_file.get_table_by_name("Containers")
+        with open(file_found, "rb") as file_object:
+            esedb_file = pyesedb.file()
+            esedb_file.open_file_object(file_object)
+            ContainersTable = esedb_file.get_table_by_name("Containers")
 
-        if ContainersTable.number_of_records > 0:
+            if ContainersTable.number_of_records > 0:
 
-            report = ArtifactHtmlReport("WebCacheV01.dat")
-            report.start_artifact_report(report_folder, 'WebCacheV01.dat')
-            report.add_script()
+                report = ArtifactHtmlReport("WebCacheV01.dat")
+                report.start_artifact_report(report_folder, 'WebCacheV01.dat')
+                report.add_script()
 
-            data_list = []
+                data_list = []
 
-            data_headers = ('Category', 'Filename', 'Url', 'AccessCount', 'CreationTime', 'ModifiedTime', 'AccessedTime', 'ExpiryTime', 'SyncTime')
+                data_headers = ('Category', 'Filename', 'Url', 'AccessCount', 'CreationTime', 'ModifiedTime', 'AccessedTime', 'ExpiryTime', 'SyncTime')
 
-            for record in ContainersTable.records:
-                containerId = u64(record.get_value_data(0))
-                categoryName = record.get_value_data(8).decode("utf-16")
+                for record in ContainersTable.records:
+                    containerId = u64(record.get_value_data(0))
+                    categoryName = record.get_value_data(8).decode("utf-16")
 
-                if categoryName.startswith("History") or categoryName.startswith("MSHist"):
-                    containerObject = esedb_file.get_table_by_name("Container_{}".format(containerId))
-                    
-                    for container in containerObject.records:
-                        data_list.append(get_data(categoryName, container))
+                    if categoryName.startswith("History") or categoryName.startswith("MSHist"):
+                        containerObject = esedb_file.get_table_by_name(f"Container_{containerId}")
 
-            report.write_artifact_data_table(data_headers, data_list, file_found)
-            report.end_artifact_report()
+                        data_list.extend(
+                            get_data(categoryName, container)
+                            for container in containerObject.records
+                        )
+                report.write_artifact_data_table(data_headers, data_list, file_found)
+                report.end_artifact_report()
 
-            tsvname = f'WebCacheV01.dat'
-            tsv(report_folder, data_headers, data_list, tsvname)
-        else:
-            logfunc(f"No Containers table available")
-        
-        file_object.close()
+                tsvname = 'WebCacheV01.dat'
+                tsv(report_folder, data_headers, data_list, tsvname)
+            else:
+                logfunc("No Containers table available")

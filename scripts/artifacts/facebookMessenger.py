@@ -35,20 +35,28 @@ def get_facebookMessenger(files_found, report_folder, seeker, wrap_text):
             report.start_artifact_report(report_folder, 'Facebook Messenger - Messages')
             report.add_script()
 
-            data_list = []
-
             data_headers = ('name', 'username', 'text', 'timestamp', 'description1', 'description2', 'description3', 'profile_picture_url')
-            for rows in all_rows:
-                data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4], rows[5], rows[6], rows[7]))
-
+            data_list = [
+                (
+                    rows[0],
+                    rows[1],
+                    rows[2],
+                    rows[3],
+                    rows[4],
+                    rows[5],
+                    rows[6],
+                    rows[7],
+                )
+                for rows in all_rows
+            ]
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'Facebook Messenger - Messages'
+            tsvname = 'Facebook Messenger - Messages'
             tsv(report_folder, data_headers, data_list, tsvname)
 
         else:
-            logfunc(f'No Facebook Messenger - Messages available')
+            logfunc('No Facebook Messenger - Messages available')
 
         cursor.execute('''select 
             bucket_stories.bucket_id AS bucket_id,
@@ -69,20 +77,19 @@ def get_facebookMessenger(files_found, report_folder, seeker, wrap_text):
             report.start_artifact_report(report_folder, 'Facebook Messenger - Stories')
             report.add_script()
 
-            data_list = []
-
             data_headers = ('bucket_id', 'owner_id', 'bucket_name', 'media_url', 'media_playable_url', 'media_thumbnail_url', 'timestamp')
-            for rows in all_rows:
-                data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4], rows[5], rows[6]))
-
+            data_list = [
+                (rows[0], rows[1], rows[2], rows[3], rows[4], rows[5], rows[6])
+                for rows in all_rows
+            ]
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'Facebook Messenger - Stories'
+            tsvname = 'Facebook Messenger - Stories'
             tsv(report_folder, data_headers, data_list, tsvname)
 
         else:
-            logfunc(f'No Facebook Messenger - Stories available')
+            logfunc('No Facebook Messenger - Stories available')
 
         cursor.execute('''select 
             contacts.id AS id,
@@ -109,20 +116,29 @@ def get_facebookMessenger(files_found, report_folder, seeker, wrap_text):
             report.start_artifact_report(report_folder, 'Facebook Messenger - Contacts')
             report.add_script()
 
-            data_list = []
-
             data_headers = ('id', 'username', 'name', 'first_name', 'last_name', 'birthday', 'is_messenger_user', 'profile_picture_url', 'profile_picture_large_url')
-            for rows in all_rows:
-                data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4], rows[5], rows[6], rows[7], rows[8]))
-
+            data_list = [
+                (
+                    rows[0],
+                    rows[1],
+                    rows[2],
+                    rows[3],
+                    rows[4],
+                    rows[5],
+                    rows[6],
+                    rows[7],
+                    rows[8],
+                )
+                for rows in all_rows
+            ]
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'Facebook Messenger - Contacts'
+            tsvname = 'Facebook Messenger - Contacts'
             tsv(report_folder, data_headers, data_list, tsvname)
 
         else:
-            logfunc(f'No Facebook Messenger - Contacts available')
+            logfunc('No Facebook Messenger - Contacts available')
 
         cursor.execute('''select 
             attachments.filename AS filename,
@@ -142,19 +158,18 @@ def get_facebookMessenger(files_found, report_folder, seeker, wrap_text):
             report.start_artifact_report(report_folder, 'Facebook Messenger - Attachments')
             report.add_script()
 
-            data_list = []
-
             data_headers = ('filename', 'filesize', 'timestamp', 'playable_url', 'playable_url_mime_type', 'summary_text')
-            for rows in all_rows:
-                data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4], rows[5]))
-
+            data_list = [
+                (rows[0], rows[1], rows[2], rows[3], rows[4], rows[5])
+                for rows in all_rows
+            ]
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'Facebook Messenger - Attachments'
+            tsvname = 'Facebook Messenger - Attachments'
             tsv(report_folder, data_headers, data_list, tsvname)
 
         else:
-            logfunc(f'No Facebook Messenger - Attachments available')
+            logfunc('No Facebook Messenger - Attachments available')
 
         db.close()

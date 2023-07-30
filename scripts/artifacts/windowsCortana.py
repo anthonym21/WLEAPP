@@ -35,8 +35,7 @@ def get_windowsCortana(files_found, report_folder, seeker, wrap_text):
             continue
 
         with open(file_found, "r", encoding="utf-8") as fp:
-            json_data = json.loads(fp.read())
-            if json_data:
+            if json_data := json.loads(fp.read()):
                 report = ArtifactHtmlReport('DeviceSearchCache')
                 report.start_artifact_report(report_folder, 'DeviceSearchCache')
                 report.add_script()
@@ -82,7 +81,7 @@ def get_windowsCortana(files_found, report_folder, seeker, wrap_text):
                 report.write_artifact_data_table(data_headers, data_list, file_found)
                 report.end_artifact_report()
 
-                tsvname = f'DeviceSearchCache'
+                tsvname = 'DeviceSearchCache'
                 tsv(report_folder, data_headers, data_list, tsvname)
             else:
-                logfunc(f'No DeviceSearchCache data available')
+                logfunc('No DeviceSearchCache data available')

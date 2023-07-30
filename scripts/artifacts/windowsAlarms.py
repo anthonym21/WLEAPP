@@ -18,7 +18,7 @@ def getData(data, value):
     data_idx = data.find(value.encode("utf-16")[2:]) # remove \xff\xfe
     result = data[data_idx+len(value)*2+2:]
 
-    if value == "__Created" or value == "__Updated":
+    if value in ["__Created", "__Updated"]:
         return convert_from_file_time(int.from_bytes(result[:8], 'little'))
     elif value == "Name":
         return result[:result.find(b"\x00\x00")] + b"\x00"
@@ -34,7 +34,6 @@ def get_windowsAlarms(files_found, report_folder, seeker, wrap_text):
             with open(file_found, "r", encoding="utf-8") as fp:
                 jsonData = json.load(fp)
 
-            data_list = []
             for value in jsonData['Alarms']:
                 name = value.get('Name')
                 hour = value.get('Hour')
@@ -43,8 +42,7 @@ def get_windowsAlarms(files_found, report_folder, seeker, wrap_text):
                 isRecurring = value.get('IsRecurring')
                 snoozeInterval = value.get('SnoozeInterval')
 
-            data_list.append((name, hour, minute, isEnabled, isRecurring, snoozeInterval))
-
+            data_list = [(name, hour, minute, isEnabled, isRecurring, snoozeInterval)]
             num_entries = len(data_list)
             if num_entries > 0:
                 report = ArtifactHtmlReport('Windows Alarms - json')
@@ -55,7 +53,7 @@ def get_windowsAlarms(files_found, report_folder, seeker, wrap_text):
                 report.write_artifact_data_table(data_headers, data_list, file_found)
                 report.end_artifact_report()
 
-                tsvname = f'Windows Alarms - json'
+                tsvname = 'Windows Alarms - json'
                 tsv(report_folder, data_headers, data_list, tsvname)
             else:
                 logfunc('No Windows Alarms - json data available')
@@ -67,7 +65,7 @@ def get_windowsAlarms(files_found, report_folder, seeker, wrap_text):
             key = regf_file.get_key_by_path("\\LocalState\\Alarms")
             for idx in range(0, key.get_number_of_values()):
                 rawData = key.get_value(idx).get_data()
-            
+
                 name = getData(rawData, "Name").decode("utf-16")
                 hour = getData(rawData, "Hour")
                 minute = getData(rawData, "Minute")
@@ -94,7 +92,7 @@ def get_windowsAlarms(files_found, report_folder, seeker, wrap_text):
                 report.write_artifact_data_table(data_headers, data_list, file_found)
                 report.end_artifact_report()
 
-                tsvname = f'Windows Alarms - registry'
+                tsvname = 'Windows Alarms - registry'
                 tsv(report_folder, data_headers, data_list, tsvname)
             else:
                 logfunc('No Windows Alarms - registry data available')

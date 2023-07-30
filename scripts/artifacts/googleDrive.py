@@ -7,7 +7,7 @@ def get_googleDrive(files_found, report_folder, seeker, wrap_text):
 
     for file_found in files_found:
         file_found = str(file_found)
-        if not os.path.basename(file_found) == "metadata_sqlite_db":
+        if os.path.basename(file_found) != "metadata_sqlite_db":
             continue
 
         db = open_sqlite_db_readonly(file_found)
@@ -39,19 +39,27 @@ def get_googleDrive(files_found, report_folder, seeker, wrap_text):
             report.start_artifact_report(report_folder, 'Google Drive')
             report.add_script()
 
-            data_list = []
-
             data_headers = ('local_title', 'file_size', 'mime_type', 'trashed', 'is_owner', 'modified_date', 'shared_with_me_date', 'viewed_by_me_date')
-            for rows in all_rows:
-                data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4], rows[5], rows[6], rows[7]))
-
+            data_list = [
+                (
+                    rows[0],
+                    rows[1],
+                    rows[2],
+                    rows[3],
+                    rows[4],
+                    rows[5],
+                    rows[6],
+                    rows[7],
+                )
+                for rows in all_rows
+            ]
             report.write_artifact_data_table(data_headers, data_list, file_found)
             report.end_artifact_report()
 
-            tsvname = f'Google Drive'
+            tsvname = 'Google Drive'
             tsv(report_folder, data_headers, data_list, tsvname)
 
         else:
-            logfunc(f'No Windows Google Drive data available')
+            logfunc('No Windows Google Drive data available')
 
         db.close()

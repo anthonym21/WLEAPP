@@ -20,8 +20,7 @@ def get_icon_name(category, artifact):
     icon = 'alert-triangle' # default (if not defined!)
 
     if category.find('ACCOUNT') >=0:
-        if artifact.find('AUTH') >=0:      icon = 'key'
-        else:                               icon = 'user'  
+        icon = 'key' if artifact.find('AUTH') >=0 else 'user'
     elif category == 'DEVICE HEALTH SERVICES':         
         if artifact.find('BLUETOOTH') >=0:  icon = 'bluetooth'
         elif artifact.find('BATTERY') >=0:  icon = 'battery-charging'
@@ -47,17 +46,21 @@ def get_icon_name(category, artifact):
         elif artifact == 'SAVED LINKS - WANT TO GO': icon = 'navigation-2'
         elif artifact == 'YOUTUBE SUBSCRIPTIONS': icon = 'youtube'
         else:                               icon = 'user'
-    elif category == 'KIK RETURNS':       
-        if artifact == 'KIK - PROFILE PIC': icon = 'image'
-        else:                               icon = 'file-text'
+    elif category == 'KIK RETURNS':   
+        icon = 'image' if artifact == 'KIK - PROFILE PIC' else 'file-text'
     elif category == 'NETFLIX ARCHIVE':
-        if artifact == 'NETFLIX - BILLING HISTORY':    icon = 'credit-card'
-        elif artifact == 'NETFLIX - PROFILES':         icon = 'users'
-        elif artifact == 'NETFLIX - IP ADDRESS LOGIN': icon = 'log-in'
-        elif artifact == 'NETFLIX - ACCOUNT DETAILS':  icon = 'users'
-        elif artifact == 'NETFLIX - MESSAGES SENT BY NETFLIX':  icon = 'mail'
-        elif artifact == 'NETFLIX - SEARCH HISTORY':   icon = 'search'
-        else:                                          icon = 'tv'
+        if artifact == 'NETFLIX - BILLING HISTORY':
+            if artifact == 'NETFLIX - BILLING HISTORY':    icon = 'credit-card'
+        elif artifact == 'NETFLIX - IP ADDRESS LOGIN':
+            icon = 'log-in'
+        elif artifact == 'NETFLIX - MESSAGES SENT BY NETFLIX':
+            icon = 'mail'
+        elif artifact in ['NETFLIX - PROFILES', 'NETFLIX - ACCOUNT DETAILS']:
+            icon = 'users'
+        elif artifact == 'NETFLIX - SEARCH HISTORY':
+            icon = 'search'
+        else:
+            icon = 'tv'
     elif category == 'CONTACTS':            icon = 'user'
     elif category == 'FIREWALL':            icon = 'filter'
     elif category == 'BETTER DISCORD':          icon = 'message-square'
@@ -69,21 +72,19 @@ def get_icon_name(category, artifact):
     elif category == 'WINDOWS YOURPHONE':       icon = 'smartphone'
     elif category == 'WINDOWS NOTIFICATION':    icon = 'bell'
     elif category == 'WINDOWS CORTANA':         icon = 'activity'
-    elif category == 'GOOGLE DRIVE' or category == "DROPBOX" or category == "BOX" or category == "SETUPAPI.DEV.LOG":            icon = 'hard-drive'
+    elif category in ['GOOGLE DRIVE', "DROPBOX", "BOX", "SETUPAPI.DEV.LOG"]:            icon = 'hard-drive'
     elif category == 'WINDOWS EDGE':               icon = 'eye'
     elif category == 'SNAPCHAT RETURNS':          icon = 'camera'
     elif category == 'FACEBOOK - INSTAGRAM RETURNS':            icon = 'facebook'
     elif category == 'INSTAGRAM ARCHIVE':  
-        if artifact == 'INSTAGRAM ARCHIVE - ACCOUNT INFO': icon = 'user'
-        elif artifact == 'INSTAGRAM ARCHIVE - PERSONAL INFO': icon = 'user'
+        if artifact in [
+            'INSTAGRAM ARCHIVE - ACCOUNT INFO',
+            'INSTAGRAM ARCHIVE - PERSONAL INFO',
+        ]: icon = 'user'
         else:                               icon = 'instagram'
     elif category == 'ICLOUD RETURNS': 
-        if artifact == 'ICLOUD - ACCOUNT FEATURES': icon = 'user'
-        else:                                       icon = 'file-text'
+        icon = 'user' if artifact == 'ICLOUD - ACCOUNT FEATURES' else 'file-text'
     return icon
-    
-    '''
-    '''
 def generate_report(reportfolderbase, time_in_secs, time_HMS, extraction_type, image_input_path):
 
     control = None
@@ -167,9 +168,8 @@ def generate_report(reportfolderbase, time_in_secs, time_HMS, extraction_type, i
     shutil.copytree(os.path.join(__location__,"MDB-Free_4.13.0"), os.path.join(elements_folder, 'MDB-Free_4.13.0'))
 
 def get_file_content(path):
-    f = open(path, 'r', encoding='utf8')
-    data = f.read()
-    f.close()
+    with open(path, 'r', encoding='utf8') as f:
+        data = f.read()
     return data
 
 def create_index_html(reportfolderbase, time_in_secs, time_HMS, extraction_type, image_input_path, nav_list_data):
@@ -282,21 +282,21 @@ def generate_key_val_table_without_headings(title, data_list, html_escape=True, 
 
 def insert_sidebar_code(data, sidebar_code, filename):
     pos = data.find(body_sidebar_dynamic_data_placeholder)
-    if pos < 0:
-        logfunc(f'Error, could not find {body_sidebar_dynamic_data_placeholder} in file {filename}')
-        return data
-    else:
-        ret = data[0 : pos] + sidebar_code + data[pos + len(body_sidebar_dynamic_data_placeholder):]
-        return ret
+    if pos >= 0:
+        return (
+            data[:pos]
+            + sidebar_code
+            + data[pos + len(body_sidebar_dynamic_data_placeholder) :]
+        )
+    logfunc(f'Error, could not find {body_sidebar_dynamic_data_placeholder} in file {filename}')
+    return data
 
 def mark_item_active(data, itemname):
     '''Finds itemname in data, then marks that node as active. Return value is changed data'''
     pos = data.find(f'" href="{itemname}"')
-    if pos < 0:
-        logfunc(f'Error, could not find {itemname} in {data}')
-        return data
-    else:
-        ret = data[0 : pos] + " active" + data[pos:]
-        return ret
+    if pos >= 0:
+        return f"{data[:pos]} active{data[pos:]}"
+    logfunc(f'Error, could not find {itemname} in {data}')
+    return data
     
     

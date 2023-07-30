@@ -11,7 +11,7 @@ def get_box(files_found, report_folder, seeker, wrap_text):
     source_file_sync = ''
 
     for file_found in files_found:
-        
+
         if file_found.endswith("streemfs.db"):
             streemfs_db = str(file_found)
             source_file_streemfs = file_found.replace(seeker.directory, '')
@@ -47,15 +47,15 @@ def get_box(files_found, report_folder, seeker, wrap_text):
         report.start_artifact_report(report_folder, 'Box - fsnodes')
         report.add_script()
         data_headers = ('isFile', 'name', 'createdAtTimestamp', 'modifiedAtTimestamp', 'accessedAtTimestamp', 'lastUsedTime', 'folderFetchTimestamp')
-        
-        data_list = []
-        for rows in all_rows:
-            data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4], rows[5], rows[6]))
 
+        data_list = [
+            (rows[0], rows[1], rows[2], rows[3], rows[4], rows[5], rows[6])
+            for rows in all_rows
+        ]
         report.write_artifact_data_table(data_headers, data_list, streemfs_db)
         report.end_artifact_report()
 
-        tsvname = f'Box - fsnodes'
+        tsvname = 'Box - fsnodes'
         tsv(report_folder, data_headers, data_list, tsvname, source_file_streemfs)
     else:
         logfunc('No streemfs.db - fsnodes available')
@@ -83,15 +83,14 @@ def get_box(files_found, report_folder, seeker, wrap_text):
         report.start_artifact_report(report_folder, 'Box - box_item')
         report.add_script()
         data_headers = ('name', 'sort_name', 'size', 'content_created_at', 'content_updated_at')
-        
-        data_list = []
-        for rows in all_rows:
-            data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4]))
 
+        data_list = [
+            (rows[0], rows[1], rows[2], rows[3], rows[4]) for rows in all_rows
+        ]
         report.write_artifact_data_table(data_headers, data_list, sync_db)
         report.end_artifact_report()
 
-        tsvname = f'Box - box_item'
+        tsvname = 'Box - box_item'
         tsv(report_folder, data_headers, data_list, tsvname, source_file_sync)
     else:
         logfunc('No sync.db - box_item available')

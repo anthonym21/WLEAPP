@@ -11,7 +11,7 @@ def get_windowsYourPhone(files_found, report_folder, seeker, wrap_text):
     phone_db = ''
 
     for file_found in files_found:
-        
+
         if file_found.endswith("phone.db"):
             phone_db = str(file_found)
             source_file_phone = file_found.replace(seeker.directory, '')
@@ -48,15 +48,26 @@ def get_windowsYourPhone(files_found, report_folder, seeker, wrap_text):
         report.start_artifact_report(report_folder, 'YourPhone - Contacts')
         report.add_script()
         data_headers = ('contact_id', 'display_name', 'alternative_name', 'nicknames', 'Last Updated', 'address', 'address_type', 'Is_Primary', 'times contacted', 'Last Contacted')
-        
-        data_list = []
-        for rows in all_rows:
-            data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4], rows[5], rows[6], rows[7], rows[8], rows[9]))
 
+        data_list = [
+            (
+                rows[0],
+                rows[1],
+                rows[2],
+                rows[3],
+                rows[4],
+                rows[5],
+                rows[6],
+                rows[7],
+                rows[8],
+                rows[9],
+            )
+            for rows in all_rows
+        ]
         report.write_artifact_data_table(data_headers, data_list, phone_db)
         report.end_artifact_report()
 
-        tsvname = f'YourPhone - Contacts'
+        tsvname = 'YourPhone - Contacts'
         tsv(report_folder, data_headers, data_list, tsvname, source_file_phone)
     else:
         logfunc('No phone.db Contacts available')
@@ -107,15 +118,30 @@ def get_windowsYourPhone(files_found, report_folder, seeker, wrap_text):
         report.start_artifact_report(report_folder, 'YourPhone - Messages')
         report.add_script()
         data_headers = ('MessageID', 'ThreadID', 'Timestamp', 'Status', 'Type', 'From Address', 'Sender', 'Body', 'Conversation Summary', 'To Address', 'Recipient', 'mesgcount', 'unreadcount', 'pc_status')
-        
-        data_list = []
-        for rows in all_rows:
-            data_list.append((rows[0],rows[1],rows[2],rows[3],rows[4],rows[5],rows[6],rows[7],rows[8],rows[9],rows[10],rows[11],rows[12],rows[13]))
 
+        data_list = [
+            (
+                rows[0],
+                rows[1],
+                rows[2],
+                rows[3],
+                rows[4],
+                rows[5],
+                rows[6],
+                rows[7],
+                rows[8],
+                rows[9],
+                rows[10],
+                rows[11],
+                rows[12],
+                rows[13],
+            )
+            for rows in all_rows
+        ]
         report.write_artifact_data_table(data_headers, data_list, phone_db)
         report.end_artifact_report()
 
-        tsvname = f'YourPhone - Messages'
+        tsvname = 'YourPhone - Messages'
         tsv(report_folder, data_headers, data_list, tsvname, source_file_phone)
     else:
         logfunc('No phone.db Messages available')
@@ -142,15 +168,14 @@ def get_windowsYourPhone(files_found, report_folder, seeker, wrap_text):
         report.start_artifact_report(report_folder, 'YourPhone - Photos')
         report.add_script()
         data_headers = ('PhotoID', 'LastUpdated', 'Name', 'Size', 'Uri')
-        
-        data_list = []
-        for rows in all_rows:
-            data_list.append((rows[0], rows[1], rows[2], rows[3], rows[4]))
 
+        data_list = [
+            (rows[0], rows[1], rows[2], rows[3], rows[4]) for rows in all_rows
+        ]
         report.write_artifact_data_table(data_headers, data_list, photos_db)
         report.end_artifact_report()
 
-        tsvname = f'YourPhone - Photos'
+        tsvname = 'YourPhone - Photos'
         tsv(report_folder, data_headers, data_list, tsvname, source_file_photos)
     else:
         logfunc('No Photos data available')
